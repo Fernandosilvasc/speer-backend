@@ -55,9 +55,10 @@ export class UsersService {
         throw new NotFoundException('No user has been found with the given id');
       }
       const updatedUser = {
+        ...existingUser,
         username: username ?? existingUser.username,
         hash: hash ?? existingUser.hash,
-        hashedRT: hashedRT ?? existingUser.hashedRT,
+        hashedRT: hashedRT,
       };
       await this.userRepository.save(updatedUser);
     } catch (err) {

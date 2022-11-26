@@ -123,16 +123,15 @@ describe('UsersService', () => {
     describe('WHEN the user id is valid', () => {
       it('THEN it should update the respective user', async () => {
         const mockExistingUser = UserFactory.build({ hashedRT: 'test' });
-        const updatedUser = _.omit(UserFactory.build({ hashedRT: 'test' }), [
-          'id',
-          'createdAt',
-          'lastUpdatedAt',
-        ]);
+        const updatedUser = {
+          ...mockExistingUser,
+          username: 'usernameUpdated',
+        };
         jest
           .spyOn(service, 'getUserById')
           .mockReturnValue(Promise.resolve(mockExistingUser));
         const spyUserRepository = jest.spyOn(mockUserEntityRepository, 'save');
-        await service.update(mockExistingUser);
+        await service.update(updatedUser);
         expect(spyUserRepository).toBeCalledWith(updatedUser);
       });
     });
