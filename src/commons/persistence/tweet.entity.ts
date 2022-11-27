@@ -2,23 +2,19 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn,
-  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import UserEntity from './user.entity';
 
 @Entity({ name: 'tweets' })
 export default class TweetEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => UserEntity)
-  @JoinColumn({ name: 'author_id' })
-  author: UserEntity;
+  @Column({ name: 'author_id' })
+  authorId: string;
 
-  @Column({ length: 240, nullable: true })
+  @Column({ length: 240, nullable: false })
   text: string;
 
   @CreateDateColumn({ type: 'timestamp' })
