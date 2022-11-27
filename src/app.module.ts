@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { AccessTokenGuard } from './commons/guards';
+import { TweetsModule } from './tweets/tweets.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { AccessTokenGuard } from './commons/guards';
     TypeOrmModule.forRoot(dataSourceOptions),
     UsersModule,
     AuthModule,
+    TweetsModule,
   ],
   providers: [
     {

@@ -1,9 +1,9 @@
 import { Test } from '@nestjs/testing';
-import { UsersService } from '../../users/services/users.service';
-import { AuthService } from './auth.service';
-import UserFactory from '../../users/services/__test/factories/user.factory';
+import { UsersService } from '../../../users/services/users.service';
+import { AuthService } from '../auth.service';
+import UserFactory from '../../../users/services/__test__/factories/user.factory';
 import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '../../commons/config/config.service';
+import { ConfigService } from '../../../commons/config/config.service';
 import {
   ConflictException,
   ForbiddenException,
