@@ -3,6 +3,7 @@ import {
   ForbiddenException,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
 import { UsersService } from '../../users/services/users.service';
 import { JwtService } from '@nestjs/jwt';
@@ -22,39 +23,52 @@ export class AuthService {
   async signupLocal(dto: AuthDto) {
     try {
       const user = await this.usersService.create(dto);
-      console.log('user=>', user);
       const tokens = await this.getTokens(user.id, user.username);
-      const result = await this.updateRtHash(user.id, tokens.refresh_token);
-      console.log('result', result);
+      await this.updateUserRtHash(user.id, tokens.refresh_token);
 
       return tokens;
     } catch (err) {
       if (err instanceof ConflictException) {
         throw new ConflictException(err.message);
       }
-      console.log(err);
       const message = `Something went wrong when signing up`;
       throw new InternalServerErrorException(message);
     }
   }
 
   async signinLocal(dto: AuthDto): Promise<Tokens> {
-    const user = await this.usersService.getUserByUsername(dto.username);
+    try {
+      const user = await this.usersService.getUserByUsername(dto.username);
 
-    if (!user) throw new ForbiddenException('Access Denied');
+      if (!user) throw new ForbiddenException('Access Denied');
 
-    const passwordMatches = await argon2.verify(user.hash, dto.password);
-    if (!passwordMatches) throw new ForbiddenException('Access Denied');
+      const passwordMatches = await argon2.verify(user.hash, dto.password);
+      if (!passwordMatches) throw new ForbiddenException('Access Denied');
 
-    const tokens = await this.getTokens(user.id, user.username);
-    await this.updateRtHash(user.id, tokens.refresh_token);
+      const tokens = await this.getTokens(user.id, user.username);
+      await this.updateUserRtHash(user.id, tokens.refresh_token);
 
-    return tokens;
+      return tokens;
+    } catch (err) {
+      const message = 'Something went wrong while signing';
+      if (err instanceof ForbiddenException) {
+        throw new ForbiddenException(err.message);
+      }
+      throw new InternalServerErrorException(message);
+    }
   }
 
   async logout(userId: string): Promise<boolean> {
-    await this.usersService.update({ id: userId, hashedRT: null });
-    return true;
+    try {
+      await this.usersService.update({ id: userId, hashedRT: null });
+      return true;
+    } catch (err) {
+      const message = 'Something went wrong while logging out';
+      if (err instanceof NotFoundException) {
+        throw new NotFoundException(err.message);
+      }
+      throw new InternalServerErrorException(message);
+    }
   }
 
   async getTokens(userId: string, username: string): Promise<Tokens> {
@@ -80,21 +94,39 @@ export class AuthService {
     };
   }
 
-  async refreshTokens(userId: string, rt: string): Promise<Tokens> {
-    const user = await this.usersService.getUserById(userId);
-    if (!user || !user.hashedRT) throw new ForbiddenException('Access Denied');
+  async getRefreshTokens(userId: string, rt: string): Promise<Tokens> {
+    try {
+      const user = await this.usersService.getUserById(userId);
+      if (!user || !user.hashedRT)
+        throw new ForbiddenException('Access Denied');
 
-    const rtMatches = await argon2.verify(user.hashedRT, rt);
-    if (!rtMatches) throw new ForbiddenException('Access Denied');
+      const rtMatches = await argon2.verify(user.hashedRT, rt);
+      if (!rtMatches) throw new ForbiddenException('Access Denied');
 
-    const tokens = await this.getTokens(user.id, user.username);
-    await this.updateRtHash(user.id, tokens.refresh_token);
+      const tokens = await this.getTokens(user.id, user.username);
+      await this.updateUserRtHash(user.id, tokens.refresh_token);
 
-    return tokens;
+      return tokens;
+    } catch (err) {
+      const message = 'Something went wrong while refreshing the tokens';
+      if (err instanceof ForbiddenException) {
+        throw new ForbiddenException(err.message);
+      }
+      throw new InternalServerErrorException(message);
+    }
   }
 
-  async updateRtHash(userId: string, rt: string): Promise<void> {
-    const hashedRT = await argon2.hash(rt);
-    await this.usersService.update({ id: userId, hashedRT });
+  async updateUserRtHash(userId: string, rt: string): Promise<void> {
+    try {
+      const hashedRT = await argon2.hash(rt);
+      await this.usersService.update({ id: userId, hashedRT });
+    } catch (err) {
+      const message =
+        "Something went wrong while updating the user's refresh token";
+      if (err instanceof NotFoundException) {
+        throw new NotFoundException(err.message);
+      }
+      throw new InternalServerErrorException(message);
+    }
   }
 }

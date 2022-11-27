@@ -48,6 +48,6 @@ export class AuthController {
     @GetCurrentUserId() userId: string,
     @GetCurrentUser('refreshToken') refreshToken: string,
   ): Promise<Tokens> {
-    return this.authService.refreshTokens(userId, refreshToken);
+    return this.authService.getRefreshTokens(userId, refreshToken);
   }
 }
