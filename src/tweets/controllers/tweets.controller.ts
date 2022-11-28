@@ -9,8 +9,8 @@ import {
   Post,
   Put,
 } from '@nestjs/common';
-import { GetCurrentUserId } from 'src/commons/decorators';
-import TweetEntity from 'src/commons/persistence/tweet.entity';
+import { GetCurrentUserId } from '../../commons/decorators';
+import TweetEntity from '../../commons/persistence/tweet.entity';
 import { UpdateTweetDto } from '../dtos/update-tweet.dto';
 import { TweetsService } from '../services/tweets.service';
 
